@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Houdvan Coffee Lab – Brewing Decision Support</title>
+
+  <!-- External CSS -->
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body>
+  <!-- 🌟 HEADER -->
+  <header>
+    <div class="brand">
+      <img src="{% static 'images/IMG_8193.PNG' %}" alt="Houdvan Coffee Logo" />
+      <div class="brand-text">
+        <h1>Houdvan Coffee Lab</h1>
+        <p>Coffee Brewing Optimization System</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ☕ MAIN CONTENT -->
+  <main>
+    <div class="container">
+      <h2> Brewing Variable Decision Support</h2>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label for="id_density">Bean Density (350–450)</label>
+          {{ form.density }}
+        </div>
+        <div class="field">
+          <label for="id_target_strength">Strength Profile</label>
+          {{ form.target_strength }}
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn-proses">Process</button>
+          <button type="reset" class="btn-reset">Reset</button>
+        </div>
+      </form>
+
+      {% if message %}
+        <div class="message {{ status_type }}">{{ message }}</div>
+      {% endif %}
+
+      {% if result %}
+        <div class="result">
+          <h3>📊 Recommendation Results</h3>
+
+          {% if result.best_cards %}
+          <div class="card-list">
+            {% for b in result.best_cards %}
+            <div class="card">
+              <span class="rank-label">🏆 Rank 1</span>
+              <h4>Top Recommendation</h4>
+              <div class="kv"><b>Density:</b> {{ b.density }}</div>
+              <div class="kv"><b>Water Temperature:</b> {{ b.temp }}°C</div>
+              <div class="kv"><b>Grind Size:</b> {{ b.grindsize }} µm</div>
+              <div class="kv"><b>Brew Ratio:</b> 1:{{ b.ratio }}</div>
+              <div class="kv"><b>Strength:</b> {{ b.strength|title }}</div>
+              <div class="kv"><b>Fuzzy Score:</b> {{ b.fuzzy_pct }}%</div>
+              <div class="kv"><b>TOPSIS Score:</b> {{ b.topsis }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if result.table_items %}
+          <div class="recommendations">
+            <table>
+              <tr>
+                <th>Rank</th><th>Density</th><th>Temp</th><th>Grind</th>
+                <th>Ratio</th><th>Strength</th><th>Fuzzy</th><th>TOPSIS</th>
+              </tr>
+              {% for row in result.table_items %}
+              <tr>
+                <td data-label="Rank">{{ row.rank }}</td>
+                <td data-label="Density">{{ row.recipe.density }}</td>
+                <td data-label="Temp">{{ row.recipe.temp }}</td>
+                <td data-label="Grind">{{ row.recipe.grindsize }}</td>
+                <td data-label="Ratio">1:{{ row.recipe.ratio }}</td>
+                <td data-label="Strength">{{ row.recipe.strength|title }}</td>
+                <td data-label="Fuzzy">{{ row.recipe.compatibility|floatformat:3 }}</td>
+                <td data-label="TOPSIS">{{ row.topsis_score|floatformat:3 }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </main>
+
+  <!-- ☕ FOOTER -->
+  <footer>
+    <p>© 2025 <span>Houdvan Coffee Lab</span> — Coffee Brewing Research</p>
+  </footer>
+
+  <!-- 🔁 RESET FORM SCRIPT -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const resetBtn = document.querySelector(".btn-reset");
+      const form = document.querySelector("form");
+      const resultSection = document.querySelector(".result");
+      const message = document.querySelector(".message");
+
+      if (resetBtn) {
+        resetBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          form.reset();
+
+          if (resultSection) {
+            resultSection.style.opacity = "0";
+            setTimeout(() => resultSection.style.display = "none", 300);
+          }
+          if (message) {
+            message.style.opacity = "0";
+            setTimeout(() => message.style.display = "none", 300);
+          }
+
+          resetBtn.textContent = "🔄 Resetting...";
+          resetBtn.disabled = true;
+          resetBtn.style.opacity = "0.6";
+
+          setTimeout(() => {
+            resetBtn.textContent = "Reset";
+            resetBtn.disabled = false;
+            resetBtn.style.opacity = "1";
+          }, 1000);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
